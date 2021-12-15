@@ -58,6 +58,6 @@ app.get('/users', async (req, res) => {
   res.send(userss);
 });
 
-app.listen(3000 || process.env.port, () => {
+app.listen(process.env.PORT || 3000, () => {
   console.log('server started');
 });

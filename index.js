@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 // const mongoose = require('mongoose');
 const { MongoClient } = require('mongodb');
+const cors = require('cors');
 
 const app = express();
 // const { User } = require('./User');
@@ -9,7 +10,7 @@ const app = express();
 // const client = new MongoClient(
 //   `mongodb+srv://admin:fzbNl7OTapdgl4AB@cluster0.qhlhp.mongodb.net/usersc?retryWrites=true&w=majority`,
 // );
-
+app.use(cors);
 let userss;
 
 async function main() {

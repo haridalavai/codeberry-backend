@@ -49,6 +49,10 @@ async function listDatabases(client) {
   databasesList.databases.forEach((db) => console.log(` - ${db.name}`));
 }
 
+app.get('/', (req, res) => {
+  res.send('');
+});
+
 app.get('/users', async (req, res) => {
   //   const users = await getUsers();
   res.send(userss);

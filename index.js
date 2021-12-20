@@ -78,7 +78,7 @@ MongoClient.connect(
     app.get('/', (req, res) => {
       res.send('hello');
     });
-    app.listen(4000 || process.env.PORT, () => {
+    app.listen(process.env.PORT, () => {
       console.log('server stare=ted');
     });
   })

@@ -1,66 +1,85 @@
 const express = require('express');
-
+const bodyParser = require('body-parser');
+const cors = require('cors');
 // const mongoose = require('mongoose');
+const mongo = require('mongodb');
 const { MongoClient } = require('mongodb');
-// const cors = require('cors');
 
 const app = express();
 
-app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  next();
-});
-let userss;
+MongoClient.connect(
+  `mongodb+srv://admin:n1EGy8UtXxMpuf1w@cluster0.qhlhp.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`,
+)
+  .then((client) => {
+    console.log('connected to db');
 
-async function main() {
-  const uri = `mongodb+srv://admin:fzbNl7OTapdgl4AB@cluster0.qhlhp.mongodb.net/usersc?retryWrites=true&w=majority`;
+    const db = client.db('codeberry-users');
 
-  const client = new MongoClient(uri);
+    const userCollection = db.collection('users');
 
-  try {
-    // Connect to the MongoDB cluster
-    await client.connect();
+    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(express.json());
+    app.use(cors());
+    app.post('/user', async (req, res) => {
+      try {
+        const result = await userCollection.insertOne(req.body);
+        res.send({ status: 'success', message: result });
+      } catch (e) {
+        res.send({ status: 'error', message: e.message });
+      }
+    });
 
-    // Make the appropriate DB calls
-    await listDatabases(client);
-    await getUsers(client);
-  } catch (e) {
-    console.error(e);
-  } finally {
-    await client.close();
-  }
-}
+    app.get('/users', async (req, res) => {
+      try {
+        const users = await userCollection.find().toArray();
+        console.log(users);
+        res.send({ status: 'success', users });
+      } catch (e) {}
+    });
 
-const getUsers = async (client) => {
-  const users = await client
-    .db('usersc')
-    .collection('users')
-    .find({})
-    .toArray();
-  console.log(users);
-  userss = users;
-};
-main().catch(console.error);
+    app.post('/update-user', async (req, res) => {
+      const userId = req.body.userId;
+      const updateDoc = req.body;
+      delete updateDoc.userId;
 
-async function listDatabases(client) {
-  databasesList = await client.db().admin().listDatabases();
+      for (key in updateDoc) {
+        if (updateDoc[key] === '') delete updateDoc[key];
+      }
+      console.log(updateDoc);
 
-  console.log('Databases:');
-  databasesList.databases.forEach((db) => console.log(` - ${db.name}`));
-}
+      try {
+        const user = await userCollection.findOneAndUpdate(
+          { userId },
+          {
+            $set: { ...updateDoc },
+          },
+        );
+        console.log(user);
+        res.send(user);
+        // const user = await userCollection.findOne({ id: id });
+        // console.log(user);
+      } catch (e) {
+        console.log(e);
+        res.send({ status: 'error', message: e.message });
+      }
+    });
 
-app.get('/', (req, res) => {
-  res.send('');
-});
-
-app.get('/users', async (req, res) => {
-  //   const users = await getUsers();
-  res.send(userss);
-});
-
-app.listen(process.env.PORT || 3000, () => {
-  console.log('server started');
-});
+    app.post('/delete-user', (req, res) => {
+      userCollection
+        .deleteOne({
+          userId: req.body.userId,
+        })
+        .then((result) => {
+          console.log(result);
+          res.send(result);
+        });
+      console.log(req.body);
+    });
+    app.get('/', (req, res) => {
+      res.send('hello');
+    });
+    app.listen(4000, () => {
+      console.log('server stare=ted');
+    });
+  })
+  .catch(console.error);
